@@ -27,16 +27,17 @@ basepib2023<- WDI(country = "all",
 basepibbr <- WDI (country = "BR" ,
                   indicator = 'NY.GDP.MKTP.CD' )
  
-# TAREFA
-# Domestic credit to private sector by banks
+# TAREFA -
+# Variável escolhida - Domestic credit to private sector by banks
+
 # SÉRIE TEMPORAL
 creddombancDEU <- WDI (country = "DEU" ,
-                  indicator = 'FD.AST.PRVT.GD.ZS' )
+                       indicator = 'FD.AST.PRVT.GD.ZS' )
 # CORTE TRANSVERSAL
 creddombancaALL2006 <- WDI (country = "all",
-                    indicator = 'FD.AST.PRVT.GD.ZS', 
-                    start = 2006, 
-                    end = 2006)
+                            indicator = 'FD.AST.PRVT.GD.ZS', 
+                            start = 2006, 
+                            end = 2006)
 # DADOS EM PAINEL
 creddombancALL <- WDI (country = "all" ,
                        indicator = 'FD.AST.PRVT.GD.ZS')
