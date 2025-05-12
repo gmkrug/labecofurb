@@ -36,54 +36,151 @@ A variável **"Domestic credit to private sector"** do WDI mede o total de créd
 
 Um gráfico de dados em painel, também conhecido como dados longitudinais, é utilizado para visualizar e analisar informações que acompanham as mesmas unidades de análise (como pessoas, empresas ou regiões) ao longo do tempo. Diferentemente de um corte transversal, que observa dados em um único momento, os dados em painel permitem examinar como as variáveis evoluem ao longo do tempo para cada unidade específica.
 
-O gráfico mostra a evolução do crédito doméstico concedido ao setor privado, como percentual do PIB, entre 1960 e 2023. Observa-se uma **tendência clara de crescimento** ao longo do tempo, com os valores se tornando cada vez mais elevados e dispersos. Nas décadas iniciais, a maioria dos países apresentava níveis abaixo de 50%, mas a partir dos anos 1980 e especialmente após 2000, surgem muitos casos com crédito acima de 100% do PIB. A alta concentração de pontos após 2020 pode refletir **políticas de estímulo econômico** adotadas durante a pandemia. O gráfico revela o **fortalecimento do setor financeiro** e a crescente importância do crédito na economia global.
+No ano de 2006, observou-se uma **grande variação** na proporção de crédito doméstico ao setor privado (% do PIB) entre os países analisados. Países desenvolvidos como **Estados Unidos, Alemanha e Japão** apresentaram valores significativamente superiores aos de países latino-americanos como **Brasil, Argentina e México**, evidenciando uma **maior profundidade financeira** e acesso ao crédito nessas economias. O **Brasil**, em particular, situava-se em uma posição intermediária no grupo, indicando um sistema financeiro ainda em expansão naquele período.
 
 ```{r}
-#| label: dados em painel
+#| label: dados_em_painel_detalhado
 #| warning: false
 #| echo: false
 
-ggplot(creddombancALL, aes(x = year, y = FD.AST.PRVT.GD.ZS, group = country)) +
-  geom_point(color = "blue", alpha = 0.3) +  # linhas finas e transparentes para vários países
-  labs(title = "Crédito doméstico concedido ao setor privado",
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+# Criar variável para destacar Brasil
+creddombancALL <- creddombancALL %>%
+  mutate(grupo_pais = ifelse(country == "Brazil", "Brasil", "Outros"))
+
+# Calcular média global por ano
+media_global <- creddombancALL %>%
+  group_by(year) %>%
+  summarise(media_mundial = mean(FD.AST.PRVT.GD.ZS, na.rm = TRUE))
+
+# Gráfico
+ggplot() +
+  # Outras linhas (países)
+  geom_line(data = creddombancALL, 
+            aes(x = year, y = FD.AST.PRVT.GD.ZS, group = country, color = grupo_pais),
+            alpha = 0.3, size = 0.6) +
+  
+  # Linha da média global
+  geom_line(data = media_global,
+            aes(x = year, y = media_mundial),
+            color = "black", linetype = "dashed", size = 0.8) +
+  
+  # Escala e rótulos
+  scale_color_manual(values = c("Brasil" = "darkblue", "Outros" = "lightblue")) +
+  scale_y_continuous(labels = label_percent(scale = 1)) +
+  
+  # Títulos e temas
+  labs(title = "Evolução do Crédito Doméstico ao Setor Privado (% do PIB)",
+       subtitle = "Comparação entre países com destaque para o Brasil e média global (linha tracejada)",
        x = "Ano",
-       y = "Percentual (%)") +
-  theme_minimal()
+       y = "Crédito ao setor privado (% do PIB)",
+       color = "",
+       caption = "Fonte: Banco Mundial | Indicador: FD.AST.PRVT.GD.ZS") +
+  
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12, color = "gray40"),
+    legend.position = "top",
+    plot.caption = element_text(size = 8, color = "gray50", hjust = 0)
+  )
 ```
 
 ## Gráfico: Dados em Corte Transversal. Ano de 2006.
 
 Em estatística e econometria, um gráfico de dados de corte transversal (cross-section) representa informações coletadas em um único ponto no tempo, geralmente envolvendo diferentes indivíduos, empresas, países ou outras unidades. Esse tipo de gráfico é usado para visualizar a relação entre variáveis e identificar padrões ou diferenças entre os diversos grupos analisados.
 
-Em 2006, o crédito doméstico ao setor privado como percentual do PIB variava amplamente entre os países, com a maioria se concentrando abaixo de 100%, mas com alguns atingindo níveis extremamente altos, acima de 200% e até 300%. O gráfico revela **desigualdade no desenvolvimento financeiro global**, refletindo diferenças econômicas, institucionais e estruturais.
+Ao analisar os dados em painel, percebe-se uma **diversidade nos padrões de evolução** do crédito privado entre os países. Enquanto muitos países apresentaram uma tendência de **crescimento constante**, outros tiveram oscilações mais intensas — muitas vezes associadas a **crises econômicas ou instabilidade política**. A linha tracejada com a **média global** ajuda a contextualizar a posição do Brasil, que durante boa parte do período analisado esteve **abaixo da média mundial**, embora tenha mostrado crescimento gradual em determinados períodos.
 
 ```{r}
-#| label: dados corte transversal 
+#| label: grafico_7_paises
 #| warning: false 
 #| echo: false  
-ggplot(creddombancaALL2006, aes(x = year, y = FD.AST.PRVT.GD.ZS)) +
-  geom_point(color = "blue", alpha = 0.5) +
-  labs(title = "Crédito doméstico concedido ao setor privado no ano de 2006",
-       x = "Ano",
-       y = "Percentual  (%)") +
-  theme_minimal()
+
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+# Lista de países desejados
+paises_selecionados <- c("Brazil", "Argentina", "Chile", "Mexico", "United States", "Germany", "Japan")
+
+# Filtrar dados para 2006 e os países escolhidos
+dados_7_paises <- creddombancaALL2006 %>%
+  filter(year == 2006, country %in% paises_selecionados)
+
+# Plot
+ggplot(dados_7_paises, aes(x = reorder(country, FD.AST.PRVT.GD.ZS), y = FD.AST.PRVT.GD.ZS)) +
+  geom_col(fill = "darkblue", alpha = 0.8) +
+  coord_flip() +
+  labs(title = "Crédito Doméstico ao Setor Privado (% do PIB)",
+       subtitle = "Comparativo entre sete países selecionados em 2006",
+       x = "País",
+       y = "Crédito ao setor privado (% do PIB)",
+       caption = "Fonte: Banco Mundial | Indicador: FD.AST.PRVT.GD.ZS") +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12, color = "gray40"),
+    axis.text = element_text(size = 10),
+    plot.caption = element_text(hjust = 0, size = 8, color = "gray50")
+  ) +
+  scale_y_continuous(labels = percent_format(scale = 1))
+
 ```
 
 ## Gráfico: Dados em Serie Temporal. País Brasil.
 
 Em estatística e econometria, um gráfico de série temporal representa dados registrados de forma sequencial ao longo do tempo para uma única unidade de análise, como um país, uma empresa ou uma pessoa. Seu principal objetivo é visualizar a dinâmica de uma variável no tempo, permitindo identificar tendências, ciclos, padrões sazonais ou mudanças bruscas.
 
-O gráfico revela três fases principais: um crescimento gradual até os anos 1980, uma fase de instabilidade e anomalias nos anos 1990, e uma **tendência de crescimento mais estável a partir dos anos 2000**, com o crédito ao setor privado atingindo cerca de 70% do PIB nos anos mais recentes. Os picos nos anos 1990 devem ser interpretados com cautela, pois possivelmente refletem problemas nos dados ou choques específicos.
+A análise da série temporal do Brasil revela um **crescimento moderado e contínuo** no crédito ao setor privado até por volta de meados da década de 2010, seguido por momentos de **estagnação ou queda**, refletindo os impactos de **crises econômicas internas** e mudanças nas políticas de crédito. O ponto máximo observado coincide com os anos de maior expansão econômica, enquanto o ponto mínimo aparece em períodos de retração, sugerindo uma forte **correlação entre o crédito e o ciclo econômico nacional**.
 
 ```{r}
-#| label: dados serie temporal
+#| label: dados_serie_temporal_brasil
 #| warning: false 
 #| echo: false     
+
+library(ggplot2)
+library(scales)
+library(dplyr)
+
+# Identificar ponto máximo e mínimo
+pontos_destaque <- creddombancBR %>%
+  filter(FD.AST.PRVT.GD.ZS == max(FD.AST.PRVT.GD.ZS, na.rm = TRUE) |
+         FD.AST.PRVT.GD.ZS == min(FD.AST.PRVT.GD.ZS, na.rm = TRUE))
+
 ggplot(creddombancBR, aes(x = year, y = FD.AST.PRVT.GD.ZS)) +
-  geom_line(color = "blue", size = 1.2) +
-  geom_point(color = "blue", size = 2) +
-  labs(title = "Crédito doméstico concedido ao setor privado no Brasil",
-       x = "Ano",
-       y = "Percentual (%)") +
-  theme_minimal()
+  geom_line(color = "#1f77b4", size = 1.2) +
+  geom_point(color = "#1f77b4", size = 2) +
+  geom_smooth(method = "loess", se = FALSE, color = "#ff7f0e", size = 1, linetype = "dashed") +
+  
+  # Anotar máximo e mínimo
+  geom_point(data = pontos_destaque, aes(x = year, y = FD.AST.PRVT.GD.ZS), 
+             color = "red", size = 3) +
+  geom_text(data = pontos_destaque, 
+            aes(x = year, y = FD.AST.PRVT.GD.ZS, 
+                label = paste0(round(FD.AST.PRVT.GD.ZS, 1), "%")),
+            vjust = -1, size = 3.5, color = "red", fontface = "bold") +
+
+  scale_y_continuous(labels = label_percent(scale = 1)) +
+
+  labs(
+    title = "Crédito Doméstico ao Setor Privado no Brasil (% do PIB)",
+    subtitle = "Evolução anual com destaque para valores máximo e mínimo | Tendência suavizada incluída",
+    x = "Ano",
+    y = "Percentual do PIB (%)",
+    caption = "Fonte: Banco Mundial | Indicador: FD.AST.PRVT.GD.ZS"
+  ) +
+
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    plot.subtitle = element_text(size = 12, color = "gray40"),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    plot.caption = element_text(hjust = 0, size = 8, color = "gray50"),
+    panel.grid.minor = element_blank()
+  )
 ```
