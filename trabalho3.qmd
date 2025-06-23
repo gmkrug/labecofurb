@@ -1,0 +1,116 @@
+---
+title: "Trabalho 3: Laboratório de Dados Econõmicos"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: load-packages # nomes unicos
+#| include: false # nao incluem o resultado no doc
+
+# Instalar pacotes necessários
+if (!require(WDI)) install.packages("WDI")
+if (!require(tidyverse)) install.packages("tidyverse")
+if (!require(rnaturalearth)) install.packages("rnaturalearth")
+if (!require(rnaturalearthdata)) install.packages("rnaturalearthdata")
+if (!require(sf)) install.packages("sf")
+if (!require(gganimate)) install.packages("gganimate")
+if (!require(transformr)) install.packages("transformr")
+if (!require(gifski)) install.packages("gifski")
+
+# Carregar pacotes
+library(WDI)
+library(tidyverse)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf)
+library(gganimate)
+library(transformr)
+library(gifski)
+```
+
+## Estudantes: Gustavo Mateus Kruger, Matheus Henrique Gieseler e Sarah Moretti
+
+## **Histórico do gasto público em educação (% do PIB) no contexto mundial**
+
+O indicador "Government expenditure on education, total (% of GDP)", que traduz o percentual do Produto Interno Bruto (PIB) investido por governos na área educacional, é uma métrica fundamental para avaliar o comprometimento de um país com o desenvolvimento humano e social. Historicamente, esse indicador reflete tanto o grau de prioridade dado à educação nas políticas públicas quanto a capacidade econômica de um Estado de sustentar investimentos consistentes em capital humano.
+
+A institucionalização do gasto público em educação como uma responsabilidade do Estado é um fenômeno relativamente recente. Até o final do século XIX, a educação era amplamente controlada por instituições religiosas ou privadas, especialmente na Europa e nos Estados Unidos. No entanto, com a expansão dos Estados-nação e o advento das revoluções industriais, a necessidade de mão de obra qualificada levou os governos a assumirem uma postura mais ativa no financiamento educacional (UNESCO, 2021).
+
+Durante o século XX, especialmente após a Segunda Guerra Mundial, cresceu o reconhecimento da educação como um direito humano fundamental e um pilar do desenvolvimento econômico. A Declaração Universal dos Direitos Humanos de 1948, em seu artigo 26, reafirma esse direito, incentivando os Estados-membros a promoverem o acesso universal à educação. A partir desse marco, organismos multilaterais como a UNESCO, o Banco Mundial e o UNICEF passaram a monitorar os investimentos em educação, incentivando os países a destinarem, idealmente, entre 4% e 6% do PIB ao setor (UNESCO, 2015).
+
+Na década de 1980, com a ascensão do neoliberalismo, muitos países em desenvolvimento enfrentaram pressões fiscais que levaram à redução dos investimentos públicos, inclusive na educação. Programas de ajuste estrutural propostos por instituições como o Fundo Monetário Internacional (FMI) e o próprio Banco Mundial, inicialmente, desconsideraram a importância dos gastos sociais. No entanto, a partir dos anos 1990, houve uma reorientação dessas instituições, reconhecendo a educação como essencial para o crescimento sustentável e a redução da pobreza (WORLD BANK, 2003).
+
+Atualmente, existe uma disparidade significativa nos níveis de investimento educacional entre países desenvolvidos e em desenvolvimento. Enquanto nações da Organização para a Cooperação e Desenvolvimento Econômico (OCDE) mantêm média superior a 5% do PIB, países de baixa renda frequentemente não atingem nem metade dessa porcentagem. O relatório *Education at a Glance* (OECD, 2023) aponta que investimentos mais altos estão correlacionados com melhores resultados em indicadores como alfabetização, desempenho escolar e inclusão.
+
+É importante destacar que o valor percentual do PIB gasto em educação, isoladamente, não garante qualidade no sistema educacional. Fatores como eficiência na alocação de recursos, transparência na gestão e equidade no acesso também são determinantes cruciais. Ainda assim, o acompanhamento desse indicador ao longo das décadas demonstra avanços significativos na priorização da educação como motor do progresso social e econômico mundial.
+
+```{r}
+#| label: trabalho
+#| warning: false
+#| echo: false
+
+
+# Indicador: Gastos públicos em educação (% do PIB)
+indicador <- c("Gastos públicos em educação (% do PIB)" = 'SE.XPD.TOTL.GD.ZS')
+
+# Baixar dados de 1970 a 2019
+dados_educacao <- WDI(indicator = indicador, country = "all", start = 1970, end = 2019)
+
+# Informações do indicador
+info_wdi <- WDI_data
+nome_indicador <- as.data.frame(info_wdi$series) %>%
+  filter(indicator == "SE.XPD.TOTL.GD.ZS") %>%
+  pull(name)
+
+fonte_indicador <- as.data.frame(info_wdi$series) %>%
+  filter(indicator == "SE.XPD.TOTL.GD.ZS") %>%
+  pull(sourceOrganization)
+
+# Mapa base
+mapa <- ne_countries(returnclass = "sf")
+
+# Unir dados com o mapa
+mapa_dados <- left_join(mapa, dados_educacao, by = c("iso_a2" = "iso2c"))
+
+# Criar o gráfico animado
+grafico <- mapa_dados %>%
+  filter(iso_a2 != "AQ") %>%
+  ggplot(aes(fill = `Gastos públicos em educação (% do PIB)`)) +  # CORRIGIDO: crases
+  geom_sf() +
+  scale_fill_viridis_c(
+    limits = c(0, 10),  # ESCALA fixa para realçar variações pequenas
+    labels = scales::percent_format(scale = 1, decimal.mark = ","),
+    na.value = "lightgray",
+    option = "C"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    legend.key.width = unit(2.5, "cm"),
+    text = element_text(family = "sans")
+  ) +
+  labs(
+    title = "Gastos públicos em educação (% do PIB) — Ano: {closest_state}",
+    fill = NULL,
+    caption = paste0("Fonte: ", fonte_indicador)
+  ) +
+  transition_states(year, transition_length = 6, state_length = 3, wrap = FALSE) +
+  ease_aes('cubic-in-out')
+
+
+# Para salvar como GIF (opcional)
+# anim_save("gastos_educacao_animado.gif", animation = last_animation())
+
+grafico
+```
+
+## **Referências (formato ABNT)**
+
+ORGANIZAÇÃO DAS NAÇÕES UNIDAS PARA A EDUCAÇÃO, A CIÊNCIA E A CULTURA – UNESCO. *Global education monitoring report 2021: non-state actors in education: who chooses? Who loses?* Paris: UNESCO Publishing, 2021. Disponível em: <https://unesdoc.unesco.org/>. Acesso em: 23 jun. 2025.
+
+ORGANIZAÇÃO DAS NAÇÕES UNIDAS PARA A EDUCAÇÃO, A CIÊNCIA E A CULTURA – UNESCO. *Education for All Global Monitoring Report 2015: Education for All 2000–2015: achievements and challenges*. Paris: UNESCO Publishing, 2015. Disponível em: <https://unesdoc.unesco.org/>. Acesso em: 23 jun. 2025.
+
+WORLD BANK. *World Development Report 2004: Making Services Work for Poor People*. Washington, DC: World Bank and Oxford University Press, 2003. Disponível em: <https://openknowledge.worldbank.org/>. Acesso em: 23 jun. 2025.
+
+OECD – ORGANISATION FOR ECONOMIC CO-OPERATION AND DEVELOPMENT. *Education at a Glance 2023: OECD Indicators*. Paris: OECD Publishing, 2023. Disponível em: https://www.oecd.org/education/education-at-a-glance/. Acesso em: 23 jun. 2025.
