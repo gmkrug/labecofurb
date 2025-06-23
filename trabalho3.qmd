@@ -105,7 +105,7 @@ grafico <- mapa_dados %>%
 grafico
 ```
 
-## **Referências (formato ABNT)**
+## **Referências**
 
 ORGANIZAÇÃO DAS NAÇÕES UNIDAS PARA A EDUCAÇÃO, A CIÊNCIA E A CULTURA – UNESCO. *Global education monitoring report 2021: non-state actors in education: who chooses? Who loses?* Paris: UNESCO Publishing, 2021. Disponível em: <https://unesdoc.unesco.org/>. Acesso em: 23 jun. 2025.
 
